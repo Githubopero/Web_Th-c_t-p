@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="vi" data-bs-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Cấu Hình Xe - WebCauHinhXe</title>
+
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <!-- Font Awesome (nếu cần thêm icon) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+
+  <style>
+    body { min-height: 100vh; background: #f8f9fa; }
+    .config-container { max-width: 1400px; margin: auto; }
+    .preview-box {
+      background: #fff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+      position: sticky;
+      top: 20px;
+    }
+    .car-preview-img { width: 100%; height: auto; transition: transform 0.4s; }
+    .car-preview-img:hover { transform: scale(1.03); }
+    .option-card {
+      border: 1px solid #dee2e6;
+      border-radius: 10px;
+      transition: all 0.3s;
+      cursor: pointer;
+    }
+    .option-card.active {
+      border-color: #0d6efd;
+      box-shadow: 0 0 0 0.25rem rgba(13,110,253,.25);
+    }
+    .option-card.disabled { opacity: 0.5; pointer-events: none; }
+    .price-summary {
+      background: linear-gradient(135deg, #0d6efd, #6610f2);
+      color: white;
+      border-radius: 12px;
+      padding: 1.5rem;
+    }
+    .theme-toggle { cursor: pointer; font-size: 1.4rem; }
+    @media (max-width: 992px) {
+      .preview-box { position: relative; top: 0; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+  <div class="container-fluid config-container">
+    <a class="navbar-brand fw-bold text-primary" href="#">WebCauHinhXe</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item"><a class="nav-link" href="#">Trang chủ</a></li>
+        <li class="nav-item"><a class="nav-link active" href="#">Cấu hình xe</a></li>
+      </ul>
+      <div class="d-flex align-items-center gap-3">
+        <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#authModal">Đăng nhập / Đăng ký</button>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- Main Content -->
+<div class="container-fluid config-container py-4">
+  <div class="row g-4">
+    <!-- Preview xe (bên trái hoặc trên mobile) -->
+    <div class="col-lg-7">
+      <div class="preview-box p-3">
+        <img id="carPreview" class="car-preview-img" src="https://via.placeholder.com/800x500/ffffff/000000?text=Xe+BMW+Mẫu" alt="Xe preview">
+        <div class="text-center mt-3">
+          <h4 id="modelName">BMW X3 xDrive20i</h4>
+          <p class="text-muted">Giá cơ bản: <strong id="basePrice">2.189.000.000 ₫</strong></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tùy chọn (bên phải) -->
+    <div class="col-lg-5">
+      <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">Tùy chỉnh xe của bạn</h5>
+          <span id="totalPrice" class="fs-5 fw-bold">Tổng: 0 ₫</span>
+        </div>
+        <div class="card-body">
+          <!-- Tabs nhóm tùy chọn -->
+          <ul class="nav nav-tabs mb-4" id="optionTabs" role="tablist">
+            <!-- Tabs sẽ được render động bằng JS -->
+          </ul>
+
+          <div class="tab-content" id="optionTabContent">
+            <!-- Nội dung tab sẽ load động -->
+          </div>
+
+          <!-- Thông báo phụ thuộc / xung đột -->
+          <div id="conflictAlert" class="alert alert-warning d-none mt-3" role="alert">
+            <strong>Cảnh báo!</strong> <span id="conflictMsg"></span>
+          </div>
+        </div>
+
+        <div class="card-footer bg-light d-flex gap-2">
+          <button id="saveConfigBtn" class="btn btn-success w-100" disabled>
+            <i class="bi bi-save"></i> Lưu cấu hình
+          </button>
+          <button id="sendQuoteBtn" class="btn btn-outline-info" disabled>
+            <i class="bi bi-envelope"></i> Gửi báo giá
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Đăng nhập / Đăng ký -->
+<div class="modal fade" id="authModal" tabindex="-1" aria-labelledby="authModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="authModalLabel">Đăng nhập / Đăng ký</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <ul class="nav nav-tabs mb-3">
+          <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#loginTab">Đăng nhập</a></li>
+          <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#registerTab">Đăng ký</a></li>
+        </ul>
+        <div class="tab-content">
+          <!-- Login -->
+          <div class="tab-pane fade show active" id="loginTab">
+            <form id="loginForm">
+              <div class="mb-3">
+                <label class="form-label">Tên đăng nhập</label>
+                <input type="text" class="form-control" id="loginUsername" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Mật khẩu</label>
+                <input type="password" class="form-control" id="loginPassword" required>
+              </div>
+              <button type="submit" class="btn btn-primary w-100">Đăng nhập</button>
+            </form>
+          </div>
+          <!-- Register -->
+          <div class="tab-pane fade" id="registerTab">
+            <form id="registerForm">
+              <div class="mb-3">
+                <label class="form-label">Tên đăng nhập</label>
+                <input type="text" class="form-control" id="regUsername" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Email</label>
+                <input type="email" class="form-control" id="regEmail" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Mật khẩu</label>
+                <input type="password" class="form-control" id="regPassword" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Xác nhận mật khẩu</label>
+                <input type="password" class="form-control" id="reregPassword" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Họ tên</label>
+                <input type="text" class="form-control" id="fulName" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Số điện thoại</label>
+                <input type="text" class="form-control" id="phoneNumber" required>
+              </div>
+              <button type="submit" class="btn btn-success w-100">Đăng ký</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Bootstrap JS + Popper -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+// ================== CONFIG ==================
+const API_BASE = 'https://localhost:7124/api'; // thay bằng domain thật
+// let currentModelId = 3; // ví dụ: X3 xDrive20i (thay đổi theo lựa chọn)
+let currentModelId = new URLSearchParams(window.location.search).get('modelId');
+
+if (!currentModelId) {
+  alert('Thiếu modelId');
+}
+let selectedOptions = new Set(); // lưu ID tùy chọn đã chọn
+let basePrice = 2189000000; // giá cơ bản mẫu
+let totalPrice = basePrice;
+
+// ================== Load dữ liệu khởi tạo ==================
+async function loadConfiguration() {
+  try {
+    const res = await fetch(`${API_BASE}/ConfigurationBuilder/start/${currentModelId}`);
+    const data = await res.json();
+
+    if (!res.ok) throw new Error(data.message || 'Lỗi tải dữ liệu');
+
+    // Render tên mẫu xe
+    document.getElementById('modelName').textContent = data.model.tenMauXe;
+    document.getElementById('basePrice').textContent = data.model.giaCoBan.toLocaleString('vi-VN') + ' ₫';
+
+    // Render tabs nhóm tùy chọn
+    const tabsEl = document.getElementById('optionTabs');
+    const contentEl = document.getElementById('optionTabContent');
+    tabsEl.innerHTML = '';
+    contentEl.innerHTML = '';
+
+    data.categories.forEach((cat, index) => {
+      const isActive = index === 0 ? 'active' : '';
+
+      // Tab header
+      tabsEl.innerHTML += `
+        <li class="nav-item" role="presentation">
+          <button class="nav-link ${isActive}" id="tab-${cat.id}" data-bs-toggle="tab" data-bs-target="#content-${cat.id}" type="button" role="tab">
+            ${cat.tenNhom}
+          </button>
+        </li>`;
+
+      // Tab content
+      let optionsHtml = '<div class="row g-3">';
+      data.optionsByCategory[cat.id].forEach(opt => {
+        const isDefault = opt.duocChonMacDinh === 1 || opt.batBuoc === 1;
+        const isDisabled = opt.tonKho <= 0;
+        const checked = isDefault ? 'checked' : '';
+
+        if (isDefault) selectedOptions.add(opt.optionId);
+
+        optionsHtml += `
+          <div class="col-md-6">
+            <div class="option-card p-3 text-center ${isDefault ? 'active' : ''} ${isDisabled ? 'disabled' : ''}" 
+                 data-option-id="${opt.optionId}" data-price="${opt.giaThem || 0}">
+              ${opt.maMau ? `<div class="color-box mx-auto mb-2" style="width:60px;height:60px;background:${opt.maMau};border-radius:50%;border:2px solid #ddd;"></div>` : ''}
+              <h6>${opt.tenTuyChon}</h6>
+              <p class="text-success fw-bold">${(opt.giaThem || 0).toLocaleString('vi-VN')} ₫</p>
+              ${opt.ghiChuTuongThich ? `<small class="text-muted">${opt.ghiChuTuongThich}</small>` : ''}
+              <input type="checkbox" class="option-checkbox d-none" ${checked} ${isDisabled ? 'disabled' : ''}>
+            </div>
+          </div>`;
+      });
+      optionsHtml += '</div>';
+
+      contentEl.innerHTML += `
+        <div class="tab-pane fade ${isActive ? 'show active' : ''}" id="content-${cat.id}" role="tabpanel">
+          ${optionsHtml}
+        </div>`;
+    });
+
+    updateTotalPrice();
+    updatePreview();
+  } catch (err) {
+    alert('Lỗi tải cấu hình: ' + err.message);
+  }
+}
+
+// ================== Xử lý chọn tùy chọn ==================
+document.addEventListener('click', async e => {
+  const card = e.target.closest('.option-card');
+  if (!card || card.classList.contains('disabled')) return;
+
+  const checkbox = card.querySelector('.option-checkbox');
+  const optionId = parseInt(card.dataset.optionId);
+  const price = parseInt(card.dataset.price);
+
+  if (checkbox.checked) {
+    // Bỏ chọn
+    checkbox.checked = false;
+    card.classList.remove('active');
+    selectedOptions.delete(optionId);
+  } else {
+    // Chọn
+    checkbox.checked = true;
+    card.classList.add('active');
+    selectedOptions.add(optionId);
+  }
+
+  // Gọi API validate realtime
+  await validateSelection();
+  updateTotalPrice();
+  updatePreview();
+});
+
+// Validate phụ thuộc / xung đột
+async function validateSelection() {
+  try {
+    const res = await fetch(`${API_BASE}/ConfigurationBuilder/validate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        modelId: currentModelId,
+        selectedOptionIds: Array.from(selectedOptions)
+      })
+    });
+
+    const data = await res.json();
+
+    const alertEl = document.getElementById('conflictAlert');
+    const msgEl = document.getElementById('conflictMsg');
+
+    if (data.conflicts?.length > 0) {
+      msgEl.textContent = `Xung đột: Không thể chọn cùng các tùy chọn ${data.conflicts.join(', ')}`;
+      alertEl.classList.remove('d-none');
+      // Có thể tự động bỏ chọn xung đột ở đây
+    } else if (data.requiredToAdd?.length > 0) {
+      msgEl.textContent = `Bắt buộc chọn thêm: ${data.requiredToAdd.join(', ')}`;
+      alertEl.classList.remove('d-none');
+      // Tự động thêm required nếu muốn
+    } else {
+      alertEl.classList.add('d-none');
+    }
+
+    // Cập nhật tổng giá từ server (nếu cần chính xác hơn)
+    if (data.grandTotal) {
+      totalPrice = data.grandTotal;
+      updateTotalPrice();
+    }
+  } catch (err) {
+    console.error('Validate error:', err);
+  }
+}
+
+function updateTotalPrice() {
+  document.getElementById('totalPrice').textContent = `Tổng: ${totalPrice.toLocaleString('vi-VN')} ₫`;
+  document.getElementById('saveConfigBtn').disabled = selectedOptions.size === 0;
+  document.getElementById('sendQuoteBtn').disabled = selectedOptions.size === 0;
+}
+
+function updatePreview() {
+  // Logic thay đổi ảnh theo màu/mâm (demo đơn giản)
+  const hasBlue = Array.from(selectedOptions).some(id => id === 3); // ví dụ Phytonic Blue id=3
+  document.getElementById('carPreview').src = hasBlue 
+    ? 'https://via.placeholder.com/800x500/003366/ffffff?text=Xe+Xanh+Phytonic' 
+    : 'https://via.placeholder.com/800x500/ffffff/000000?text=Xe+Trắng+Alpine';
+}
+
+// ================== Lưu cấu hình ==================
+document.getElementById('saveConfigBtn').addEventListener('click', async () => {
+  const name = prompt('Nhập tên cấu hình:');
+  if (!name) return;
+
+  try {
+    const res = await fetch(`${API_BASE}/Configuration/save`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        nguoiDungId: localStorage.getItem('userId') || null, // từ login
+        mauXeId: currentModelId,
+        tenCauHinh: name,
+        selectedOptionIds: Array.from(selectedOptions),
+        congKhai: false
+      })
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+      alert(`Lưu thành công! Mã chia sẻ: ${data.shareCode}\nLink: ${data.shareUrl}`);
+    } else {
+      alert('Lỗi: ' + data.message);
+    }
+  } catch (err) {
+    alert('Lỗi kết nối: ' + err.message);
+  }
+});
+
+// ================== Đăng nhập / Đăng ký ==================
+document.getElementById('loginForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const username = document.getElementById('loginUsername').value;
+  const password = document.getElementById('loginPassword').value;
+
+  try {
+    const res = await fetch(`${API_BASE}/Auth/Login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tenDangNhap: username, matKhau: password })
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+      localStorage.setItem('userId', data.userId);
+      alert('Đăng nhập thành công!');
+      bootstrap.Modal.getInstance(document.getElementById('authModal')).hide();
+    } else {
+      alert(data.message || 'Đăng nhập thất bại');
+    }
+  } catch (err) {
+    alert('Lỗi: ' + err.message);
+  }
+});
+
+document.getElementById('registerForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  // Tương tự login, gọi API Register...
+  alert('Chức năng đăng ký - gọi API tương tự login');
+});
+
+
+
+// Load ban đầu
+loadConfiguration();
+</script>
+</body>
+</html>

@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="vi" data-bs-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Trang Chủ - WebCauHinhXe</title>
+
+  <!-- Bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+    body { background: #f8f9fa; }
+
+    /* ===== Sidebar ===== */
+    .sidebar {
+      background: white;
+      min-height: 85vh;
+      border-right: 1px solid #dee2e6;
+      padding: 10px;
+      overflow-y: auto;
+    }
+
+    .series-item {
+      cursor: pointer;
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 15px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+      transition: 0.3s;
+      background: white;
+    }
+
+    .series-item:hover {
+      transform: translateY(-3px);
+    }
+
+    .series-item.active {
+      border: 2px solid #0d6efd;
+    }
+
+    .series-img {
+      width: 100%;
+      height: 120px;
+      object-fit: cover;
+    }
+
+    .series-name {
+      text-align: center;
+      font-weight: 600;
+      padding: 8px;
+      font-size: 14px;
+    }
+
+    /* ===== Model ===== */
+    .model-card {
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+      background: white;
+      transition: 0.3s;
+    }
+
+    .model-card:hover {
+      transform: translateY(-5px);
+    }
+
+    .model-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .model-desc {
+      font-size: 14px;
+      color: #6c757d;
+    }
+
+    .specs {
+      font-size: 13px;
+    }
+
+    .specs span {
+      font-weight: 600;
+    }
+  </style>
+</head>
+
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+  <div class="container">
+    <a class="navbar-brand fw-bold text-primary" href="#">BMV Car</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item"><a class="nav-link active" href="index4.html">Các dòng xe</a></li>
+        <li class="nav-item"><a class="nav-link active" href="all_models.html">Tất cả các mẫu xe</a></li>
+        <li class="nav-item"><a class="nav-link" href="#">Cấu hình của tôi</a></li>
+      </ul>
+      <div class="d-flex align-items-center gap-3">
+        <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#authModal">Đăng nhập / Đăng ký</button>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero Banner -->
+<section class="bg-primary text-white text-center py-5">
+  <div class="container">
+    <h1 class="display-4 fw-bold mb-3">Khám Phá Các Dòng Xe</h1>
+    <p class="lead mb-0">Chọn dòng xe yêu thích và bắt đầu tùy chỉnh cấu hình xe mơ ước của bạn</p>
+  </div>
+</section>
+
+<!-- Layout -->
+<div class="container-fluid py-4">
+  <div class="row">
+
+    <!-- Sidebar -->
+    <div class="col-lg-3 col-md-4 sidebar">
+      <h5 class="fw-bold text-center mb-3">Dòng xe</h5>
+      <div id="seriesList"></div>
+    </div>
+
+    <!-- Models -->
+    <div class="col-lg-9 col-md-8">
+      <div class="container">
+        <h4 id="seriesTitle" class="fw-bold mb-4">Chọn dòng xe</h4>
+        <div id="modelsContainer"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+<!-- Modal Đăng nhập / Đăng ký -->
+<div class="modal fade" id="authModal" tabindex="-1" aria-labelledby="authModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="authModalLabel">Đăng nhập / Đăng ký</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <ul class="nav nav-tabs mb-3">
+          <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#loginTab">Đăng nhập</a></li>
+          <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#registerTab">Đăng ký</a></li>
+        </ul>
+        <div class="tab-content">
+          <!-- Login -->
+          <div class="tab-pane fade show active" id="loginTab">
+            <form id="loginForm">
+              <div class="mb-3">
+                <label class="form-label">Tên đăng nhập</label>
+                <input type="text" class="form-control" id="loginUsername" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Mật khẩu</label>
+                <input type="password" class="form-control" id="loginPassword" required>
+              </div>
+              <button type="submit" class="btn btn-primary w-100">Đăng nhập</button>
+            </form>
+          </div>
+          <!-- Register -->
+          <div class="tab-pane fade" id="registerTab">
+            <form id="registerForm">
+              <div class="mb-3">
+                <label class="form-label">Tên đăng nhập</label>
+                <input type="text" class="form-control" id="regUsername" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Email</label>
+                <input type="email" class="form-control" id="regEmail" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Mật khẩu</label>
+                <input type="password" class="form-control" id="regPassword" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Xác nhận mật khẩu</label>
+                <input type="password" class="form-control" id="reregPassword" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Họ tên</label>
+                <input type="text" class="form-control" id="fulName" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Số điện thoại</label>
+                <input type="text" class="form-control" id="phoneNumber" required>
+              </div>
+              <button type="submit" class="btn btn-success w-100">Đăng ký</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Bootstrap -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+const API_BASE = 'https://localhost:7124/api';
+
+
+// ================= Load dòng xe =================
+async function loadSeries() {
+  try {
+    const res = await fetch(`${API_BASE}/SeriesApi`);
+    const { data } = await res.json();
+
+    const seriesList = document.getElementById('seriesList');
+    seriesList.innerHTML = '';
+
+    data.forEach((series, index) => {
+
+      const div = document.createElement('div');
+      div.className = 'series-item';
+      div.dataset.id = series.id;
+
+      div.innerHTML = `
+        <img src="${series.anhDaiDien || 'https://via.placeholder.com/400x200?text=' + series.tenDongXe}"
+             class="series-img">
+        <div class="series-name">${series.tenDongXe}</div>
+      `;
+
+      div.addEventListener('click', async () => {
+
+        document.querySelectorAll('.series-item')
+          .forEach(x => x.classList.remove('active'));
+
+        div.classList.add('active');
+
+        document.getElementById('seriesTitle').innerText = series.tenDongXe;
+
+        await loadModels(series.id);
+      });
+
+      seriesList.appendChild(div);
+
+      if (index === 0) div.click();
+    });
+
+  } catch (err) {
+    alert('Lỗi tải dòng xe: ' + err.message);
+  }
+}
+
+
+// ================= Load mẫu xe =================
+async function loadModels(seriesId) {
+  try {
+    const res = await fetch(`${API_BASE}/ModelApi/by-series/${seriesId}`);
+    const { data } = await res.json();
+
+    const container = document.getElementById('modelsContainer');
+    container.innerHTML = '';
+
+    if (data.length === 0) {
+      container.innerHTML = '<p class="text-muted">Chưa có mẫu xe.</p>';
+      return;
+    }
+
+    data.forEach(model => {
+
+      let specs = {};
+      try {
+        specs = model.thongSoKyThuat
+          ? JSON.parse(model.thongSoKyThuat)
+          : {};
+      } catch {}
+
+      container.innerHTML += `
+        <div class="model-card p-3 mb-4">
+
+          <div class="row g-3 align-items-center">
+
+            <!-- Ảnh trái -->
+            <div class="col-md-4 col-lg-3">
+              <img src="${model.anhDaiDien || 'https://via.placeholder.com/400x200'}"
+                   class="model-img rounded">
+            </div>
+
+            <!-- Thông tin -->
+            <div class="col-md-8 col-lg-9">
+
+              <div class="d-flex justify-content-between">
+                <h5 class="fw-bold">${model.tenMauXe}</h5>
+                <div class="fs-5 text-success fw-bold">
+                  ${model.giaCoBan.toLocaleString('vi-VN')} ₫
+                </div>
+              </div>
+
+              <p class="model-desc">
+                ${model.moTa || 'Không có mô tả'}
+              </p>
+
+              <div class="specs row">
+                <div class="col-md-4">
+                  <div><span>Năm:</span> ${model.namSanXuat || '-'}</div>
+                  <div><span>Động cơ:</span> ${specs.dong_co || '-'}</div>
+                </div>
+
+                <div class="col-md-4">
+                  <div><span>Công suất:</span> ${specs.cong_suat || '-'}</div>
+                  <div><span>Hộp số:</span> ${specs.hop_so || '-'}</div>
+                </div>
+
+                <div class="col-md-4">
+                  <div><span>Dẫn động:</span> ${specs.dan_dong || '-'}</div>
+                  <div><span>Tăng tốc:</span> ${specs.tang_toc || '-'}</div>
+                </div>
+              </div>
+
+              <div class="mt-3">
+                <a href="model-detail.html?modelId=${model.id}"
+                   class="btn btn-outline-primary btn-sm me-2">Chi tiết</a>
+
+                <a href="config2.html?modelId=${model.id}"
+                   class="btn btn-primary btn-sm">Tùy chỉnh</a>
+              </div>
+
+            </div>
+          </div>
+        </div>`;
+    });
+
+  } catch (err) {
+    alert('Lỗi tải mẫu xe: ' + err.message);
+  }
+}
+
+
+// ================= Start =================
+loadSeries();
+</script>
+
+</body>
+</html>

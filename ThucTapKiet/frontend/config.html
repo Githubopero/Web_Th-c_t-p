@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="vi" data-bs-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Build Your BMW</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+body{background:#f4f6f9}
+
+/* ===== Preview ===== */
+.preview-box{
+  background:white;
+  border-radius:16px;
+  overflow:hidden;
+  position:sticky;
+  top:20px;
+  box-shadow:0 10px 25px rgba(0,0,0,.1);
+}
+
+/* ===== Steps ===== */
+.step-nav{
+  display:flex;
+  gap:15px;
+  margin-bottom:20px;
+}
+.step-item{
+  flex:1;
+  text-align:center;
+  padding:10px;
+  border-radius:10px;
+  background:#e9ecef;
+  cursor:pointer;
+}
+.step-item.active{
+  background:#0d6efd;
+  color:white;
+}
+
+/* ===== Options ===== */
+.option-card{
+  border-radius:14px;
+  border:1px solid #ddd;
+  padding:15px;
+  cursor:pointer;
+  transition:.25s;
+}
+.option-card:hover{transform:translateY(-4px)}
+.option-card.active{
+  border:2px solid #0d6efd;
+}
+
+/* ===== Summary ===== */
+.summary-box{
+  background:linear-gradient(135deg,#0d6efd,#6610f2);
+  color:white;
+  border-radius:14px;
+  padding:20px;
+}
+
+.color-box{
+  width:70px;
+  height:70px;
+  border-radius:50%;
+  margin:auto;
+  border:2px solid #ddd;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container-fluid py-4">
+<div class="row g-4">
+
+<!-- ===== LEFT ===== -->
+<div class="col-lg-8">
+
+<div class="preview-box p-3 mb-4">
+<img id="carPreview" class="w-100" src="https://via.placeholder.com/900x500">
+<div class="text-center mt-3">
+<h4 id="modelName">BMW X3</h4>
+<p class="text-muted">Giá cơ bản: <span id="basePrice"></span></p>
+</div>
+</div>
+
+<!-- Step -->
+<div class="step-nav" id="steps"></div>
+
+<!-- Step content -->
+<div id="stepContent"></div>
+
+</div>
+
+<!-- ===== RIGHT ===== -->
+<div class="col-lg-4">
+<div class="summary-box sticky-top">
+
+<h5>Tóm tắt cấu hình</h5>
+<hr>
+
+<div id="summaryOptions"></div>
+
+<h4 class="mt-3" id="totalPrice"></h4>
+
+<button class="btn btn-light w-100 mt-3" id="saveBtn">Lưu cấu hình</button>
+
+</div>
+</div>
+
+</div>
+</div>
+
+<script>
+const API_BASE='https://localhost:7124/api';
+
+let currentModelId = new URLSearchParams(window.location.search).get('modelId');
+
+if (!currentModelId) {
+  alert('Thiếu modelId');
+}
+let steps=[];
+let selected={};
+let basePrice=0;
+let total=0;
+
+/* ===== INIT ===== */
+async function load(){
+  const res=await fetch(`${API_BASE}/ConfigurationBuilder/start/${currentModelId}`);
+  const data=await res.json();
+
+  document.getElementById('modelName').textContent=data.model.tenMauXe;
+  basePrice=data.model.giaCoBan;
+  total=basePrice;
+
+  document.getElementById('basePrice').textContent=
+    basePrice.toLocaleString('vi-VN')+' ₫';
+
+  steps=data.categories;
+
+  renderSteps();
+  renderStepContent(0);
+}
+
+/* ===== STEP ===== */
+function renderSteps(){
+  const el=document.getElementById('steps');
+  el.innerHTML='';
+
+  steps.forEach((s,i)=>{
+    el.innerHTML+=`
+      <div class="step-item ${i===0?'active':''}"
+           onclick="goStep(${i})">
+           ${s.tenNhom}
+      </div>`;
+  });
+}
+
+function goStep(index){
+  document.querySelectorAll('.step-item')
+    .forEach(x=>x.classList.remove('active'));
+
+  document.querySelectorAll('.step-item')[index]
+    .classList.add('active');
+
+  renderStepContent(index);
+}
+
+/* ===== STEP CONTENT ===== */
+async function renderStepContent(index){
+
+  const cat=steps[index];
+
+  const res=await fetch(
+    `${API_BASE}/ConfigurationBuilder/options/${currentModelId}/${cat.id}`
+  );
+  const data=await res.json();
+
+  let html='<div class="row g-3">';
+
+  data.forEach(opt=>{
+    const active=selected[cat.id]===opt.optionId?'active':'';
+
+    html+=`
+    <div class="col-md-6">
+      <div class="option-card ${active}"
+        onclick="selectOption(${cat.id},${opt.optionId},${opt.giaThem})">
+
+        ${opt.maMau?
+          `<div class="color-box" style="background:${opt.maMau}"></div>`
+          :''}
+
+        <h6 class="mt-2">${opt.tenTuyChon}</h6>
+        <b class="text-success">
+          ${(opt.giaThem||0).toLocaleString('vi-VN')} ₫
+        </b>
+
+      </div>
+    </div>`;
+  });
+
+  html+='</div>';
+
+  document.getElementById('stepContent').innerHTML=html;
+}
+
+/* ===== SELECT ===== */
+function selectOption(catId,optId,price){
+
+  selected[catId]={id:optId,price:price};
+
+  calcTotal();
+  updateSummary();
+}
+
+/* ===== TOTAL ===== */
+function calcTotal(){
+  total=basePrice;
+  Object.values(selected).forEach(o=>{
+    total+=o.price||0;
+  });
+
+  document.getElementById('totalPrice')
+    .textContent='Tổng: '+total.toLocaleString('vi-VN')+' ₫';
+}
+
+/* ===== SUMMARY ===== */
+function updateSummary(){
+
+  const box=document.getElementById('summaryOptions');
+  box.innerHTML='';
+
+  Object.keys(selected).forEach(cat=>{
+    box.innerHTML+=`
+      <div class="d-flex justify-content-between">
+        <span>${cat}</span>
+        <b>+${selected[cat].price.toLocaleString('vi-VN')} ₫</b>
+      </div>`;
+  });
+}
+
+/* ===== SAVE ===== */
+document.getElementById('saveBtn').onclick=async()=>{
+
+  const name=prompt('Tên cấu hình');
+  if(!name) return;
+
+  const ids=Object.values(selected).map(x=>x.id);
+
+  await fetch(`${API_BASE}/Configuration/save`,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      mauXeId:currentModelId,
+      tenCauHinh:name,
+      selectedOptionIds:ids
+    })
+  });
+
+  alert('Đã lưu');
+};
+
+load();
+</script>
+
+</body>
+</html>

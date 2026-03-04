@@ -1,0 +1,6 @@
+@WebCauHinhXe_HostAddress = http://localhost:5096
+
+GET {{WebCauHinhXe_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
